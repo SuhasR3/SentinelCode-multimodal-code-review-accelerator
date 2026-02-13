@@ -1,0 +1,6 @@
+torch                       # Late Fusion Deep Learning
+transformers                # Pretrained CodeBERT model
+lizard                      # Cyclomatic Complexity & metrics extraction
+pandas                      # Data manipulation for structural metrics
+shap                        # Explainability visualizations
+scikit-learn                # Performance benchmarking (Recall, Classifiers)
