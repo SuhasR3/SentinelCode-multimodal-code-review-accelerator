@@ -35,15 +35,22 @@ sentinelcode-multimodal-code-review-accelerator/
 ├── data/                   # Raw & processed datasets (Defects4J, Bugs.jar)
 ├── src/
 │   ├── models/
-│   │   ├── semantic.py     # CodeBERT-based NLP pipeline
-│   │   ├── structural.py   # PROMISE metric extraction & processing
-│   │   └── fusion.py       # Late Fusion classification layer
+│	│	├── bert_classifier.py     	### file that fetches the BERT model
+│   │   ├── semantic.py     		# CodeBERT-based NLP pipeline
+│   │   ├── structural.py   		# PROMISE metric extraction & processing
+│   │   └── fusion.py       		# Late Fusion classification layer
 │   ├── features/
-│   │   ├── extractor.py    # Cyclomatic Complexity & Halstead Volume logic
-│   │   └── churn.py        # Git history/module failure frequency analysis
-│   └── utils/
-│       ├── explainability.py # SHAP & Attention visualizations
-│       └── uncertainty.py    # MC Dropout implementation
+│   │   ├── extractor.py    		# Cyclomatic Complexity & Halstead Volume logic
+│   │   └── churn.py        		# Git history/module failure frequency analysis
+│   ├── configs/
+│   │   ├── baseline.py    			### default setup/config  
+│   │   └── ablation.py     		### ablation changes
+│   ├── utils/
+│   │   ├── explainability.py 		# SHAP & Attention visualizations
+│   │   └── uncertainty.py    		# MC Dropout implementation
+│	├── eval.py  					### model evaluation
+│	├── predict.py  				### generate predictions on new data
+│	└── train.py  					### model trainig
 ├── requirements.txt
-└── main.py                 # Entry point for training/inference
+└── main.py                 		# Entry point for training/inference
 ```
