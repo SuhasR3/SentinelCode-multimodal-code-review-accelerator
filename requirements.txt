@@ -4,3 +4,11 @@ lizard                      # Cyclomatic Complexity & metrics extraction
 pandas                      # Data manipulation for structural metrics
 shap                        # Explainability visualizations
 scikit-learn                # Performance benchmarking (Recall, Classifiers)
+
+
+datasets>=2.19.0 			#Hugging Face Datasets — Efficient dataset loading and preprocessing.
+evaluate>=0.4.2				#Hugging Face Evaluate — Standardized evaluation metrics.
+accelerate>=0.30.0			# Hugging Face Accelerate — Simplifies distributed and mixed-precision training (if we use it or not depends on where we do the training)
+
+pyyaml>=6.0.1				#YAML parser for Python (we are going to use this to define different configurations for our models)
+tqdm>=4.66.0				#this is for jupyter mostly, it gives visual progress of what is happening (loops, training, etc)

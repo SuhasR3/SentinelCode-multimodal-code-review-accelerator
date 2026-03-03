@@ -43,8 +43,8 @@ sentinelcode-multimodal-code-review-accelerator/
 │   │   ├── extractor.py    		# Cyclomatic Complexity & Halstead Volume logic
 │   │   └── churn.py        		# Git history/module failure frequency analysis
 │   ├── configs/
-│   │   ├── baseline.py    			### default setup/config  
-│   │   └── ablation.py     		### ablation changes
+│   │   ├── baseline.yaml    		### default setup/config  
+│   │   └── ablation.yaml     		### ablation changes
 │   ├── utils/
 │   │   ├── explainability.py 		# SHAP & Attention visualizations
 │   │   └── uncertainty.py    		# MC Dropout implementation
