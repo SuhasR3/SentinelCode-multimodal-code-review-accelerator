@@ -1,0 +1,14 @@
+model:
+  pretrained_model_name: "microsoft/codebert-base"
+  num_labels: 2
+
+data:
+  train_path: "data/processed/train.jsonl"
+  val_path: "data/processed/val.jsonl"
+  max_length: 256
+
+train:
+  batch_size: 16
+  num_workers: 2
+  shuffle_train: true
+  shuffle_val: false
