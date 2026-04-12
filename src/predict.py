@@ -7,7 +7,8 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 # Configuration
 # =========================
 CHECKPOINT_DIR = "outputs/checkpoints/code-model-best"
-MAX_LENGTH = 128
+MAX_LENGTH = 512
+LABEL_MAP = {0: "Clean", 1: "Buggy/Vulnerable"}
 
 
 @torch.no_grad()
@@ -46,13 +47,17 @@ def predict_texts(texts, checkpoint_dir=CHECKPOINT_DIR, max_length=MAX_LENGTH):
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description="Run inference on one or more code snippets.")
-    parser.add_argument(
+    parser = argparse.ArgumentParser(description="Run inference on one code snippet or file.")
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument(
         "--text",
         type=str,
-        nargs="+",
-        required=True,
-        help="One or more code snippets to classify."
+        help="A single code snippet to classify."
+    )
+    input_group.add_argument(
+        "--file",
+        type=str,
+        help="Path to a file containing one code snippet to classify."
     )
     parser.add_argument(
         "--checkpoint",
@@ -69,8 +74,14 @@ def main():
 
     args = parser.parse_args()
 
+    if args.file:
+        with open(args.file, "r", encoding="utf-8") as f:
+            texts = [f.read()]
+    else:
+        texts = [args.text]
+
     results = predict_texts(
-        texts=args.text,
+        texts=texts,
         checkpoint_dir=args.checkpoint,
         max_length=args.max_length,
     )
