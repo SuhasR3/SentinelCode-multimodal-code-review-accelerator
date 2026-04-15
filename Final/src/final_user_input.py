@@ -301,7 +301,6 @@ def predict_fused(
         "fused_probs": fused_probs.squeeze(0).cpu().tolist(),
         "fused_pred": fused_pred,
         "fused_label": "buggy" if fused_pred == 1 else "clean",
-        "metrics_used": metrics_row,
     }
 
 
@@ -388,7 +387,13 @@ def main():
             device=device,
             alpha=args.alpha,
         )
-        print(json.dumps(result, indent=2))
+        code_buggy = result["code_probs"][1]
+        promise_buggy = result["promise_probs"][1]
+        fusion_buggy = result["fused_probs"][1]
+
+        print(f"CodeBERT: {'buggy' if code_buggy >= 0.5 else 'clean'} ({code_buggy:.2%})")
+        print(f"PROMISE:  {'buggy' if promise_buggy >= 0.5 else 'clean'} ({promise_buggy:.2%})")
+        print(f"Fusion:   {result['fused_label']} ({fusion_buggy:.2%})")
         return
 
     # Evaluation path
