@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SentinelCode Review Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">SentinelCode // Delivery Guard</p>
+        <h1>AI-Assisted Code Review Triage</h1>
+        <p class="lede">Run the multimodal classifier first, then optionally ask the LLM to explain likely issues, confidence, and remediation before review handoff.</p>
+      </div>
+      <div class="hero-orbit">
+        <div class="score-ring">
+          <div class="score-core">
+            <span>Review Signal</span>
+            <strong>{% if analysis %}{{ analysis.summary.fusion_buggy_probability }}{% else %}Live{% endif %}</strong>
+          </div>
+        </div>
+        <div class="hero-tags">
+          <span>Semantic</span>
+          <span>Structural</span>
+          <span>LLM Assist</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel input-panel">
+      <form action="{{ url_for('analyze') }}" method="post">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Analysis Input</p>
+            <label class="field-label" for="code">Code Snippet</label>
+          </div>
+          <div class="status-pill">Human-in-the-loop review</div>
+        </div>
+        <textarea id="code" name="code" placeholder="Paste Java or code snippet here...">{{ code or '' }}</textarea>
+
+        <div class="controls">
+          <div class="control">
+            <label class="field-label" for="alpha">Fusion Weight (Semantic Branch)</label>
+            <input id="alpha" name="alpha" type="range" min="0" max="1" step="0.05" value="{{ alpha if alpha is defined else 0.5 }}" oninput="document.getElementById('alpha-value').textContent = this.value">
+            <div class="hint">Current alpha: <span id="alpha-value">{{ alpha if alpha is defined else 0.5 }}</span></div>
+          </div>
+
+          <label class="checkbox">
+            <input type="checkbox" name="explain_with_llm" {% if explain_with_llm %}checked{% endif %}>
+            <span>Generate LLM review after prediction</span>
+          </label>
+        </div>
+
+        <button class="submit" type="submit">Analyze Code</button>
+      </form>
+    </section>
+
+    {% if error %}
+    <section class="panel error-panel">
+      <h2>Error</h2>
+      <p>{{ error }}</p>
+    </section>
+    {% endif %}
+
+    {% if analysis %}
+    <section class="results-grid">
+      <article class="panel triage-card priority-{{ analysis.review_priority.final_review_priority }}">
+        <div class="triage-head">
+          <div>
+            <p class="section-kicker">Decision Layer</p>
+            <h2>Final Review Priority</h2>
+          </div>
+          <div class="status-pill risk-{{ analysis.review_priority.final_review_priority }}">{{ analysis.review_priority.final_review_priority }} priority</div>
+        </div>
+        <div class="triage-grid">
+          <div class="triage-metric">
+            <span>Model Signal</span>
+            <strong>{{ analysis.review_priority.model_signal }}</strong>
+          </div>
+          <div class="triage-metric">
+            <span>LLM Security Reasoning</span>
+            <strong>{{ analysis.review_priority.llm_security_reasoning }}</strong>
+          </div>
+          <div class="triage-metric">
+            <span>Final Review Priority</span>
+            <strong>{{ analysis.review_priority.final_review_priority }}</strong>
+          </div>
+        </div>
+        <p class="triage-note">{{ analysis.review_priority.priority_explanation }}</p>
+      </article>
+
+      <article class="panel summary-card danger-{{ analysis.summary.confidence }}">
+        <h2>Prediction Summary</h2>
+        <dl class="stats">
+          <div>
+            <dt>Label</dt>
+            <dd>{{ analysis.summary.label }}</dd>
+          </div>
+          <div>
+            <dt>Confidence</dt>
+            <dd>{{ analysis.summary.confidence }}</dd>
+          </div>
+          <div>
+            <dt>Fusion Buggy Prob</dt>
+            <dd>{{ analysis.summary.fusion_buggy_probability }}</dd>
+          </div>
+          <div>
+            <dt>Semantic Branch</dt>
+            <dd>{{ analysis.summary.semantic_buggy_probability }}</dd>
+          </div>
+          <div>
+            <dt>Structural Branch</dt>
+            <dd>{{ analysis.summary.structural_buggy_probability }}</dd>
+          </div>
+          <div>
+            <dt>Branch Alignment</dt>
+            <dd>{{ analysis.summary.branch_alignment }}</dd>
+          </div>
+        </dl>
+        <p class="interpretation">{{ analysis.summary.interpretation }}</p>
+      </article>
+
+      <article class="panel probabilities-card">
+        <h2>Branch Probabilities</h2>
+        <div class="bar-group">
+          <p>Semantic Branch</p>
+          <div class="meter"><span style="width: {{ analysis.prediction.code_probs[1] * 100 }}%"></span></div>
+          <small>Buggy: {{ "%.2f"|format(analysis.prediction.code_probs[1] * 100) }}%</small>
+        </div>
+        <div class="bar-group">
+          <p>Structural Branch</p>
+          <div class="meter"><span style="width: {{ analysis.prediction.promise_probs[1] * 100 }}%"></span></div>
+          <small>Buggy: {{ "%.2f"|format(analysis.prediction.promise_probs[1] * 100) }}%</small>
+        </div>
+        <div class="bar-group">
+          <p>Fusion Output</p>
+          <div class="meter fusion"><span style="width: {{ analysis.prediction.fused_probs[1] * 100 }}%"></span></div>
+          <small>Buggy: {{ "%.2f"|format(analysis.prediction.fused_probs[1] * 100) }}%</small>
+        </div>
+      </article>
+
+      <article class="panel metrics-card">
+        <h2>Extracted Metrics</h2>
+        <div class="metrics-grid">
+          {% for key, value in analysis.prediction.metrics.items() %}
+          <div class="metric">
+            <span>{{ key }}</span>
+            <strong>{{ "%.2f"|format(value) }}</strong>
+          </div>
+          {% endfor %}
+        </div>
+      </article>
+
+      {% if analysis.llm_review %}
+      <article class="panel llm-card">
+        <div class="llm-head">
+          <div>
+            <p class="section-kicker">AI Explanation Layer</p>
+            <h2>LLM Review</h2>
+          </div>
+        </div>
+        {% if analysis.llm_review.is_truncated %}
+        <p class="truncate-note">The LLM response may be incomplete. Increase the output token limit if needed.</p>
+        {% endif %}
+        <div class="llm-sections">
+          {% for section in analysis.llm_review.sections %}
+          <section class="llm-section-card llm-section-{{ loop.index }} {% if loop.first %}llm-section-wide{% endif %}">
+            <h3>{{ section.title }}</h3>
+            {% for paragraph in section.paragraphs %}
+            <p>{{ paragraph }}</p>
+            {% endfor %}
+            {% if section.bullets %}
+            <ul>
+              {% for item in section.bullets %}
+              <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </section>
+          {% endfor %}
+        </div>
+      </article>
+      {% endif %}
+    </section>
+    {% endif %}
+  </main>
+</body>
+</html>
